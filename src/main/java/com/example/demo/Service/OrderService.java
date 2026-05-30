@@ -29,19 +29,35 @@ public class OrderService {
 
     public Order createOrder(OrdersRequestDto request) {
 
+        System.out.println("=================================");
+        System.out.println("NEW ORDER REQUEST");
+        System.out.println("Item ID : " + request.getItemId());
+        System.out.println("Quantity : " + request.getQuantity());
+        System.out.println("Customer Type : " + request.getCustomerType());
+        System.out.println("=================================");
+
         // Validate Quantity
         if (request.getQuantity() <= 0) {
+
             throw new IllegalArgumentException(
-                    "Quantity must be greater than zero");
+                    "Please enter a valid quantity greater than zero.");
         }
 
         // Find Inventory Item
         InventoryItem item = inventoryRepository
                 .findById(request.getItemId())
-                .orElseThrow(() -> new RuntimeException(
-                        "Inventory Item with ID "
-                                + request.getItemId()
-                                + " not found"));
+                .orElseThrow(() -> {
+
+                    System.out.println(
+                            "ERROR : Inventory Item Not Found");
+
+                    return new RuntimeException(
+                            "Invalid Item ID. Please select a valid inventory item.");
+                });
+
+        System.out.println(
+                "Inventory Item Found : "
+                        + item.getName());
 
         Order order = new Order();
 
@@ -58,23 +74,37 @@ public class OrderService {
 
             order.setStatus(OrderStatus.PROCESSED);
 
+            System.out.println(
+                    "Order Status : PROCESSED");
+
         } else {
 
             order.setStatus(OrderStatus.BACKORDERED);
+
+            System.out.println(
+                    "Order Status : BACKORDERED");
         }
 
         // Low Stock Warning
         if (item.getStockQuantity() < item.getRestockQuantity()) {
 
             System.out.println(
-                    "WARNING: Item "
+                    "WARNING : "
                             + item.getName()
                             + " stock is below threshold.");
         }
 
         inventoryRepository.save(item);
 
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+
+        System.out.println(
+                "Order Saved Successfully");
+        System.out.println(
+                "Order ID : "
+                        + savedOrder.getId());
+
+        return savedOrder;
     }
 
     public List<Order> getAllOrders() {
