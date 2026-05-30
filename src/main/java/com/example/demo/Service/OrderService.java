@@ -1,5 +1,7 @@
 package com.example.demo.Service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +36,8 @@ public class OrderService {
         }
 
         // Find Inventory Item
-        InventoryItem item = inventoryRepository.findById(request.getItemId())
+        InventoryItem item = inventoryRepository
+                .findById(request.getItemId())
                 .orElseThrow(() -> new RuntimeException(
                         "Inventory Item with ID "
                                 + request.getItemId()
@@ -46,11 +49,12 @@ public class OrderService {
         order.setQuantity(request.getQuantity());
         order.setCustomerType(request.getCustomerType());
 
-        // Stock Check
+        // Check Stock Availability
         if (item.getStockQuantity() >= request.getQuantity()) {
 
             item.setStockQuantity(
-                    item.getStockQuantity() - request.getQuantity());
+                    item.getStockQuantity()
+                            - request.getQuantity());
 
             order.setStatus(OrderStatus.PROCESSED);
 
@@ -71,5 +75,10 @@ public class OrderService {
         inventoryRepository.save(item);
 
         return orderRepository.save(order);
+    }
+
+    public List<Order> getAllOrders() {
+
+        return orderRepository.findAll();
     }
 }
